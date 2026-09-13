@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.188.0/http/server.ts";
-
+  return response;
+});
 const userID = "83584bae-0489-4aca-9921-a065922afc0b";
 
 const uuidBytes = new Uint8Array(16);
@@ -8,7 +8,7 @@ for (let i = 0; i < 16; i++) {
   uuidBytes[i] = parseInt(hexString.substr(i * 2, 2), 16);
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   const upgrade = req.headers.get("upgrade") || "";
   
   if (upgrade.toLowerCase() !== "websocket") {
