@@ -32,10 +32,14 @@ export default {
         let offset = 18 + optLen;
         const cmd = data[offset++];
         
-        if (cmd !== 1) return socket.close(); 
-
+        // استخراج پورت
         const port = (data[offset] << 8) | data[offset + 1];
         offset += 2;
+
+        // فقط TCP (1) و درخواست‌های UDP پورت 53 (DNS) اجازه عبور دارند
+        if (cmd !== 1 && !(cmd === 2 && port === 53)) {
+           return socket.close();
+        }
 
         const addrType = data[offset++];
         let hostname = "";
@@ -60,7 +64,14 @@ export default {
         const payload = data.slice(offset);
 
         try {
-          tcpConn = await Deno.connect({ hostname, port });
+          if (cmd === 2 && port === 53) {
+            // ترفند: تبدیل درخواست UDP DNS به TCP DNS-over-TLS روی سرور گوگل
+            tcpConn = await Deno.connectTls({ hostname: "8.8.8.8", port: 853 });
+          } else {
+            // اتصال عادی برای وب‌گردی
+            tcpConn = await Deno.connect({ hostname, port });
+          }
+
           socket.send(new Uint8Array([version, 0]));
           
           if (payload.length > 0) {
